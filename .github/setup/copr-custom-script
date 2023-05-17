@@ -63,7 +63,7 @@ EOF
 )
 
 
-./bootstrap && ./configure && make dist-xz
+./bootstrap && ./configure && make dist-bzip2
 tarball=$(echo cpio-*.tar.xz)
 version=${tarball%%.tar.xz}
 version=${version##cpio-}

@@ -4,7 +4,7 @@ Version: <GENERATED>
 Release: <GENERATED>
 License: GPL-3.0-or-later
 URL: https://www.gnu.org/software/cpio/
-Source: https://ftp.gnu.org/gnu/cpio/cpio-%{version}.tar.bz2
+Source: cpio-%{version}.tar.bz2
 
 Provides: bundled(gnulib)
 Provides: bundled(paxutils)
