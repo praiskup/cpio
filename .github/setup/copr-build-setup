@@ -3,12 +3,11 @@
 # Helper script (used by praiskup atm) to update CI scripting on Copr side.
 
 script=$(readlink -f "$(dirname "$0")")/copr-custom-script
+script_resultdir=.
+pkgname=cpio
 
 PROJECT_PR=praiskup/tar-ci
 PROJECT_PUSH=praiskup/tar-upstream-head
-
-PACKAGE_NAME=cpio
-RESULTDIR=.
 
 build_deps='
     autoconf
@@ -31,7 +30,9 @@ for PROJECT in $PROJECT_PR $PROJECT_PUSH; do
             --script "$script" \
             --script-chroot "fedora-latest-x86_64" \
             --script-builddeps "${build_deps[*]}" \
+            --name "$pkgname" \
+            --script-resultdir "$script_resultdir"
     )
     test "$PROJECT" = "$PROJECT_PR" && copr_cmd+=( --max-builds 20 )
-    "${copr_cmd[@]}" --name "$PACKAGE_NAME" --script-resultdir "$RESULTDIR"
+    "${copr_cmd[@]}"
 done

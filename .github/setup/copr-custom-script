@@ -5,6 +5,7 @@ set -e
 resultdir=$PWD
 
 clone_url_parent=https://github.com/praiskup/cpio
+clone_default_branch=ci
 workdir=$(basename "$clone_url_parent")
 workdir=${workdir%%.git}
 hook_payload=$(readlink -f "${HOOK_PAYLOAD-hook_payload}")
@@ -21,7 +22,11 @@ git clone \
 
 # checkout requested revision
 cd "$workdir"
-webhook-checkout "$hook_payload"
+if test -f "$hook_payload"; then
+    webhook-checkout "$hook_payload"
+else
+    git checkout "$clone_default_branch"
+fi
 
 ./bootstrap && ./configure && make dist-xz
 tarball=$(echo cpio-*.tar.xz)
