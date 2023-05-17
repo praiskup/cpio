@@ -300,6 +300,10 @@ process_copy_pass (void)
 		  && errno != EPERM)
 		chown_error_details (output_name.ds_string, uid, gid);
 	    }
+
+          if (retain_time_flag)
+            set_file_times (-1, output_name.ds_string,
+                            in_file_stat.st_atime, in_file_stat.st_mtime);
 	  free (link_name);
 	}
 #endif

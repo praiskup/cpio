@@ -798,6 +798,9 @@ copyin_link (struct cpio_file_stat *file_hdr, int in_file_des)
 	    chown_error_details (file_hdr->c_name, uid, gid);
 	}
     }
+
+  if (retain_time_flag)
+    set_file_times (-1, file_hdr->c_name, file_hdr->c_mtime, file_hdr->c_mtime);
   free (link_name);
 }
 

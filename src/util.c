@@ -1250,8 +1250,10 @@ set_file_times (int fd,
   ts[1].tv_sec = mtime;
 
   /* Silently ignore EROFS because reading the file won't have upset its
-     timestamp if it's on a read-only filesystem. */
-  if (fdutimens (fd, name, ts) < 0 && errno != EROFS)
+     timestamp if it's on a read-only filesystem.  When FD == -1, name
+     is a symlink */
+  if ((fd >= 0 ? fdutimens (fd, NULL, ts) : lutimens (name, ts)) < 0
+      && errno != EROFS)
     utime_error (name);
 }
 
