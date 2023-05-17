@@ -34,7 +34,6 @@ Install cpio if you need a program to manage file archives.
 
 
 %build
-autoreconf -fi
 export CFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -pedantic -fno-strict-aliasing -Wall $CFLAGS"
 %configure --with-rmt="%{_sysconfdir}/rmt"
 %make_build

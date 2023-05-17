@@ -29,7 +29,10 @@ else
 fi
 
 
-(cd paxutils
+(
+# This sub-shell is to be removed once we have paxutils fixed upstream.
+git submodule update --init
+cd paxutils
 patch -p1 <<'EOF'
 diff --git a/paxlib/Makefile.am b/paxlib/Makefile.am
 index 2561271..0dedb89 100644
