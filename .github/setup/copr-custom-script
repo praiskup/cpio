@@ -29,8 +29,8 @@ else
 fi
 
 ./bootstrap && ./configure && make dist-bzip2
-tarball=$(echo cpio-*.tar.xz)
-version=${tarball%%.tar.xz}
+tarball=$(echo cpio-*.tar.bz2)
+version=${tarball%%.tar.bz2}
 version=${version##cpio-}
 
 # spec file synced with Fedora
