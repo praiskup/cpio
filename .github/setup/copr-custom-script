@@ -28,41 +28,6 @@ else
     git checkout "$clone_default_branch"
 fi
 
-
-(
-# This sub-shell is to be removed once we have paxutils fixed upstream.
-git submodule update --init
-cd paxutils
-patch -p1 <<'EOF'
-diff --git a/paxlib/Makefile.am b/paxlib/Makefile.am
-index 2561271..0dedb89 100644
---- a/paxlib/Makefile.am
-+++ b/paxlib/Makefile.am
-@@ -34,8 +34,6 @@ libpax_a_SOURCES = \
-  tarbuf.c\
-  rtape.c
- 
--EXTRA_DIST = DISTFILES
--
- BUILT_SOURCES=localedir.h
- localedir = $(datadir)/locale
- 
-diff --git a/rmt/Makefile.am b/rmt/Makefile.am
-index 643bda0..968121b 100644
---- a/rmt/Makefile.am
-+++ b/rmt/Makefile.am
-@@ -23,8 +23,6 @@ EXTRA_PROGRAMS = rmt
- 
- rmt_SOURCES = rmt.c
- 
--EXTRA_DIST = DISTFILES
--
- AM_CPPFLAGS = -I$(top_srcdir)/gnu -I../ -I../gnu -I$(top_srcdir)/lib \
-   -I$(top_srcdir)/paxlib
-EOF
-)
-
-
 ./bootstrap && ./configure && make dist-bzip2
 tarball=$(echo cpio-*.tar.xz)
 version=${tarball%%.tar.xz}
