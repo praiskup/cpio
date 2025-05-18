@@ -1,5 +1,5 @@
 /* Extended cpio header from POSIX.1.
-   Copyright (C) 1992-2024 Free Software Foundation, Inc.
+   Copyright (C) 1992-2025 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -134,5 +134,9 @@ void cpio_file_stat_init (struct cpio_file_stat *file_hdr);
 void cpio_file_stat_free (struct cpio_file_stat *file_hdr);
 void cpio_set_c_name(struct cpio_file_stat *file_hdr, char *name);
 void cpio_realloc_c_name (struct cpio_file_stat *file_hdr, size_t len);
+
+#ifndef SIZE_MAX
+# define SIZE_MAX (~(size_t)0)
+#endif
 
 #endif /* cpiohdr.h */

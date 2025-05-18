@@ -1,5 +1,5 @@
 /* main.c - main program and argument processing for cpio.
-   Copyright (C) 1990-2024 Free Software Foundation, Inc.
+   Copyright (C) 1990-2025 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -73,7 +73,7 @@ const char *program_authors[] =
   };
 
 const char *argp_program_bug_address = "<" PACKAGE_BUGREPORT ">";
-static char doc[] = N_("GNU `cpio' copies files to and from archives\n\
+static char doc[] = N_("GNU cpio copies files to and from archives\n\
 \n\
 Examples:\n\
   # Copy files named in name-list to the archive\n\
@@ -294,13 +294,13 @@ warn_control (char *arg)
   return 1;
 }
 
-static int
-get_block_size (char *arg, int min, int max)
+static size_t
+get_block_size (char *arg, size_t min, size_t max)
 {
-  long n;
+  unsigned long n;
   char *p;
   errno = 0;
-  n = strtol (arg, &p, 10);
+  n = strtoul (arg, &p, 10);
   if (errno || *p)
     USAGE_ERROR ((0, 0, _("invalid block size: %s"), arg));
   if (n < min || n > max)
@@ -335,7 +335,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     case BLOCK_SIZE_OPTION:		/* --block-size */
-      io_block_size = get_block_size (arg, 1, INT_MAX / 512) * 512;
+      io_block_size =
+	      get_block_size (arg, 1, SIZE_MAX / DISK_IO_BLOCK_SIZE) *
+	      DISK_IO_BLOCK_SIZE;
       break;
 
     case 'c':		/* Use the old portable ASCII format.  */
@@ -349,7 +351,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     case 'C':		/* Block size.  */
-      io_block_size = get_block_size (arg, 1, INT_MAX);
+      io_block_size = get_block_size (arg, DISK_IO_BLOCK_SIZE, SIZE_MAX);
       break;
 
     case 'd':		/* Create directories where needed.  */
@@ -736,6 +738,23 @@ process_args (int argc, char *argv[])
     no_chown_flag = true;
 }
 
+/* Make sure the input buffer can always hold 2 blocks and that it
+   is big enough to hold 1 tar record (512 bytes) even if it
+   is not aligned on a block boundary.  The extra buffer space
+   is needed by process_copyin and peek_in_buf to automatically
+   figure out what kind of archive it is reading.
+
+   It is guaranteed that 512 <= io_block_size <= SIZE_MAX */
+static inline size_t
+copyin_buf_size (void)
+{
+  if (SIZE_MAX / 2 < io_block_size)
+    USAGE_ERROR ((0, 0, _("block size out of allowed range: %zu"),
+		  io_block_size));
+
+  return 2 * io_block_size;
+}
+
 /* Initialize the input and output buffers to their proper size and
    initialize all variables associated with the input and output
    buffers.  */
@@ -743,24 +762,18 @@ process_args (int argc, char *argv[])
 void
 initialize_buffers ()
 {
-  int in_buf_size, out_buf_size;
+  size_t in_buf_size, out_buf_size;
 
   if (copy_function == process_copy_in)
     {
-      /* Make sure the input buffer can always hold 2 blocks and that it
-	 is big enough to hold 1 tar record (512 bytes) even if it
-	 is not aligned on a block boundary.  The extra buffer space
-	 is needed by process_copyin and peek_in_buf to automatically
-	 figure out what kind of archive it is reading.  */
-      if (io_block_size >= 512)
-	in_buf_size = 2 * io_block_size;
-      else
-	in_buf_size = 1024;
+      in_buf_size = copyin_buf_size ();
       out_buf_size = DISK_IO_BLOCK_SIZE;
     }
   else if (copy_function == process_copy_out)
     {
-      in_buf_size = DISK_IO_BLOCK_SIZE;
+      /* In append mode, process_copy_out calls process_copy_in first,
+         hence the required input buffer size is computed as above. */
+      in_buf_size = append_flag ? copyin_buf_size () : DISK_IO_BLOCK_SIZE;
       out_buf_size = io_block_size;
     }
   else

@@ -1,5 +1,5 @@
 /* extern.h - External declarations for cpio.  Requires system.h.
-   Copyright (C) 1990-2024 Free Software Foundation, Inc.
+   Copyright (C) 1990-2025 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ enum archive_format
 
 extern enum archive_format archive_format;
 extern int reset_time_flag;
-extern int io_block_size;
+extern size_t io_block_size;
 extern int create_dir_flag;
 extern int rename_flag;
 extern char *rename_batch_file;

@@ -1,6 +1,6 @@
 # Makefile for GNU cpio regression tests.
 
-# Copyright (C) 2004-2024 Free Software Foundation, Inc.
+# Copyright (C) 2004-2025 Free Software Foundation, Inc.
 
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -80,13 +80,14 @@ installcheck-local:
 	$(SHELL) $(TESTSUITE) $(TESTSUITEFLAGS) AUTOTEST_PATH=$(exec_prefix)/bin
 
 
-## ------------ ##
-## genfile      ##
-## ------------ ##
+## ------------------ ##
+## Auxiliary programs ##
+## ------------------ ##
 
-check_PROGRAMS = genfile
+check_PROGRAMS = genfile sizemax
 
 genfile_SOURCES = genfile.c argcv.c argcv.h
+sizemax_SOURCES = sizemax.c
 
 localedir = $(datadir)/locale
 AM_CPPFLAGS = \
