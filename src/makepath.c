@@ -46,24 +46,19 @@
    Return 0 if ARGPATH exists as a directory with the proper
    ownership and permissions when done, otherwise 1.  */
 
-int
-make_path (char const *argpath,
-	   uid_t owner,
-	   gid_t group,
-	   const char *verbose_fmt_string)
+static int
+make_path0 (char *dirpath,
+	    uid_t owner,
+	    gid_t group,
+	    const char *verbose_fmt_string)
 {
-  char *dirpath;		/* A copy we can scribble NULs on.  */
   struct stat stats;
-  int retval = 0;
   mode_t tmpmode;
   mode_t invert_permissions;
   int we_are_root = getuid () == 0;
-  dirpath = alloca (strlen (argpath) + 1);
-
-  strcpy (dirpath, argpath);
 
   if (stat (dirpath, &stats))
-    {
+  {
       tmpmode = MODE_RWX & ~ newdir_umask;
       invert_permissions = we_are_root ? 0 : MODE_WXUSR & ~ tmpmode;
 
@@ -156,5 +151,19 @@ make_path (char const *argpath,
 
     }
 
+  return 0;
+}
+
+int
+make_path (char const *argpath,
+	   uid_t owner,
+	   gid_t group,
+	   const char *verbose_fmt_string)
+{
+  char *dirpath = xstrdup (argpath);
+  int retval = make_path0 (dirpath, owner, group, verbose_fmt_string);
+  free (dirpath);
   return retval;
 }
+
+

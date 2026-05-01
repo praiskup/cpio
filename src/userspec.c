@@ -18,7 +18,6 @@
 /* Written by David MacKenzie <djm@gnu.ai.mit.edu>.  */
 
 #include <system.h>
-#include <alloca.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <sys/types.h>
@@ -32,18 +31,6 @@
 # define endgrent()
 #endif
 
-/* Perform the equivalent of the statement `dest = strdup (src);',
-   but obtaining storage via alloca instead of from the heap.  */
-
-#define V_STRDUP(dest, src)						\
-  do									\
-    {									\
-      int _len = strlen ((src));					\
-      (dest) = (char *) alloca (_len + 1);				\
-      strcpy (dest, src);						\
-    }									\
-  while (0)
-
 /* Return nonzero if STR represents an unsigned decimal integer,
    otherwise return 0. */
 
@@ -54,6 +41,18 @@ isnumber_p (const char *str)
     if (!isdigit (*str))
       return 0;
   return 1;
+}
+
+static void
+store_string (char **bufptr, size_t *buflen, char *str)
+{
+  size_t len = strlen (str) + 1;
+  if (len > *buflen)
+    {
+      *bufptr = xrealloc (*bufptr, len);
+      *buflen = len;
+    }
+  strcpy (*bufptr, str);
 }
 
 /* Extract from NAME, which has the form "[user][:.][group]",
@@ -69,22 +68,20 @@ isnumber_p (const char *str)
    Return NULL if successful, a static error message string if not.  */
 
 const char *
-parse_user_spec (const char *spec_arg, uid_t *uid, gid_t *gid,
-		 char **username_arg, char **groupname_arg)
+parse_user_spec0 (char *spec, uid_t *uid, gid_t *gid,
+		  char **username_arg, char **groupname_arg)
 {
   static const char *tired = "virtual memory exhausted";
   const char *error_msg;
-  char *spec;			/* A copy we can write on.  */
   struct passwd *pwd;
   struct group *grp;
   char *g, *u, *separator;
-  char *groupname;
+  char *groupname = NULL;
+  size_t grouplen = 0;
 
   error_msg = NULL;
   *username_arg = *groupname_arg = NULL;
   groupname = NULL;
-
-  V_STRDUP (spec, spec_arg);
 
   /* Find the separator if there is one.  */
   separator = strchr (spec, ':');
@@ -142,11 +139,12 @@ parse_user_spec (const char *spec_arg, uid_t *uid, gid_t *gid,
 	      if (grp == NULL)
 		{
 		  char nbuf[UINTMAX_STRSIZE_BOUND];
-		  V_STRDUP (groupname, umaxtostr (pwd->pw_gid, nbuf));
+		  store_string (&groupname, &grouplen,
+				umaxtostr (pwd->pw_gid, nbuf));
 		}
 	      else
 		{
-		  V_STRDUP (groupname, grp->gr_name);
+		  store_string (&groupname, &grouplen, grp->gr_name);
 		}
 	      endgrent ();
 	    }
@@ -177,7 +175,7 @@ parse_user_spec (const char *spec_arg, uid_t *uid, gid_t *gid,
       endgrent ();		/* Save a file descriptor.  */
 
       if (error_msg == NULL)
-	V_STRDUP (groupname, g);
+	store_string (&groupname, &grouplen, g);
     }
 
   if (error_msg == NULL)
@@ -190,21 +188,22 @@ parse_user_spec (const char *spec_arg, uid_t *uid, gid_t *gid,
 	}
 
       if (groupname != NULL && error_msg == NULL)
-	{
-	  *groupname_arg = strdup (groupname);
-	  if (*groupname_arg == NULL)
-	    {
-	      if (*username_arg != NULL)
-		{
-		  free (*username_arg);
-		  *username_arg = NULL;
-		}
-	      error_msg = tired;
-	    }
-	}
+	*groupname_arg = groupname;
     }
+  else
+    free (groupname);
 
   return error_msg;
+}
+
+const char *
+parse_user_spec (const char *spec_arg, uid_t *uid, gid_t *gid,
+		 char **username, char **groupname)
+{
+  char *spec = xstrdup (spec_arg);
+  const char *retval = parse_user_spec0 (spec, uid, gid, username, groupname);
+  free (spec);
+  return retval;
 }
 
 #ifdef TEST
