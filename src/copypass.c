@@ -1,5 +1,5 @@
 /* copypass.c - cpio copy pass sub-function.
-   Copyright (C) 1990-2025 Free Software Foundation, Inc.
+   Copyright (C) 1990-2026 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -126,7 +126,7 @@ process_copy_pass (void)
 		   && in_file_stat.st_mtime <= out_file_stat.st_mtime)
 	    {
 	      error (0, 0, _("%s not created: newer or same age version exists"),
-		     output_name.ds_string);
+		     quote (output_name.ds_string));
 	      continue;		/* Go to the next file.  */
 	    }
 	  else if (S_ISDIR (out_file_stat.st_mode)
@@ -134,7 +134,7 @@ process_copy_pass (void)
 			: unlink (output_name.ds_string))
 	    {
 	      error (0, errno, _("cannot remove current %s"),
-		     output_name.ds_string);
+		     quote (output_name.ds_string));
 	      continue;		/* Go to the next file.  */
 	    }
 	}
@@ -311,7 +311,8 @@ process_copy_pass (void)
 #endif
       else
 	{
-	  error (0, 0, _("%s: unknown file type"), input_name.ds_string);
+	  error (0, 0, _("%s: unknown file type"),
+		 quote (input_name.ds_string));
 	}
 
       if (verbose_flag)
@@ -387,12 +388,12 @@ link_to_name (char const *link_name, char const *link_target)
     {
       if (verbose_flag)
 	error (0, 0, _("%s linked to %s"),
-	       link_target, link_name);
+	       quote_n (0, link_target), quote_n (1, link_name));
     }
   else if (link_flag)
     {
       error (0, errno, _("cannot link %s to %s"),
-	     link_target, link_name);
+	     quote_n (0, link_target), quote_n (1, link_name));
     }
   return res;
 }

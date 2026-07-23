@@ -1,5 +1,5 @@
 /* copyin.c - extract or list a cpio archive
-   Copyright (C) 1990-2025 Free Software Foundation, Inc.
+   Copyright (C) 1990-2026 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -114,7 +114,7 @@ get_link_name (struct cpio_file_stat *file_hdr, int in_file_des)
   if (file_hdr->c_filesize < 0 || file_hdr->c_filesize > SIZE_MAX-1)
     {
       error (0, 0, _("%s: stored filename length is out of range"),
-	     file_hdr->c_name);
+	     quote (file_hdr->c_name));
       link_name = NULL;
     }
   else
@@ -150,7 +150,11 @@ list_file (struct cpio_file_stat* file_hdr, int in_file_des)
 	}
       else
 #endif
-	long_format (file_hdr, (char *) 0);
+	long_format (file_hdr, NULL);
+    }
+  else if (name_end == '\n' && isatty (fileno (stdout)))
+    {
+      printf ("%s%c", quotearg (file_hdr->c_name), name_end);
     }
   else
     {
@@ -173,7 +177,7 @@ list_file (struct cpio_file_stat* file_hdr, int in_file_des)
       if (crc != file_hdr->c_chksum)
 	{
 	  error (0, 0, _("%s: checksum error (0x%x, should be 0x%x)"),
-		 file_hdr->c_name, crc, file_hdr->c_chksum);
+		 quote (file_hdr->c_name), crc, file_hdr->c_chksum);
 	}
     }
 }
@@ -200,7 +204,7 @@ try_existing_file (struct cpio_file_stat* file_hdr, int in_file_des,
 	       && file_hdr->c_mtime <= file_stat.st_mtime)
 	{
 	  error (0, 0, _("%s not created: newer or same age version exists"),
-		 file_hdr->c_name);
+		 quote (file_hdr->c_name));
 	  tape_toss_input (in_file_des, file_hdr->c_filesize);
 	  tape_skip_padding (in_file_des, file_hdr->c_filesize);
 	  return -1;	/* Go to the next file.  */
@@ -210,7 +214,7 @@ try_existing_file (struct cpio_file_stat* file_hdr, int in_file_des,
 		: unlink (file_hdr->c_name))
 	{
 	  error (0, errno, _("cannot remove current %s"),
-		 file_hdr->c_name);
+		 quote (file_hdr->c_name));
 	  tape_toss_input (in_file_des, file_hdr->c_filesize);
 	  tape_skip_padding (in_file_des, file_hdr->c_filesize);
 	  return -1;	/* Go to the next file.  */
@@ -271,7 +275,8 @@ create_defered_links (struct cpio_file_stat *file_hdr)
 	  if (link_res < 0)
 	    {
 	      error (0, errno, _("cannot link %s to %s"),
-		     d->header.c_name, file_hdr->c_name);
+		     quote_n (0, d->header.c_name),
+		     quote_n (1, file_hdr->c_name));
 	    }
 	  if (d_prev != NULL)
 	    d_prev->next = d->next;
@@ -467,7 +472,8 @@ copyin_regular_file (struct cpio_file_stat* file_hdr, int in_file_des)
 	  if (link_res < 0)
 	    {
 	      error (0, errno, _("cannot link %s to %s"),
-		     file_hdr->c_tar_linkname, file_hdr->c_name);
+		     quote_n (0, file_hdr->c_tar_linkname),
+		     quote_n (1, file_hdr->c_name));
 	    }
 	  return;
 	}
@@ -500,7 +506,7 @@ copyin_regular_file (struct cpio_file_stat* file_hdr, int in_file_des)
 	swapping_halfwords = true;
       else
 	error (0, 0, _("cannot swap halfwords of %s: odd number of halfwords"),
-	       file_hdr->c_name);
+	       quote (file_hdr->c_name));
     }
   if (swap_bytes_flag)
     {
@@ -508,7 +514,7 @@ copyin_regular_file (struct cpio_file_stat* file_hdr, int in_file_des)
 	swapping_bytes = true;
       else
 	error (0, 0, _("cannot swap bytes of %s: odd number of bytes"),
-	       file_hdr->c_name);
+	       quote (file_hdr->c_name));
     }
   copy_files_tape_to_disk (in_file_des, out_file_des, file_hdr->c_filesize);
   disk_empty_output_buffer (out_file_des, true);
@@ -519,7 +525,7 @@ copyin_regular_file (struct cpio_file_stat* file_hdr, int in_file_des)
 	{
 	  if (crc != file_hdr->c_chksum)
 	    error (0, 0, _("%s: checksum error (0x%x, should be 0x%x)"),
-		   file_hdr->c_name, crc, file_hdr->c_chksum);
+		   quote (file_hdr->c_name), crc, file_hdr->c_chksum);
 	}
       tape_skip_padding (in_file_des, file_hdr->c_filesize);
       return;
@@ -534,7 +540,7 @@ copyin_regular_file (struct cpio_file_stat* file_hdr, int in_file_des)
     {
       if (crc != file_hdr->c_chksum)
 	error (0, 0, _("%s: checksum error (0x%x, should be 0x%x)"),
-	       file_hdr->c_name, crc, file_hdr->c_chksum);
+	       quote (file_hdr->c_name), crc, file_hdr->c_chksum);
     }
 
   tape_skip_padding (in_file_des, file_hdr->c_filesize);
@@ -582,7 +588,8 @@ copyin_device (struct cpio_file_stat* file_hdr)
       if (link_res < 0)
 	{
 	  error (0, errno, _("cannot link %s to %s"),
-		 file_hdr->c_tar_linkname, file_hdr->c_name);
+		 quote_n (0, file_hdr->c_tar_linkname),
+		 quote_n (1, file_hdr->c_name));
 	  /* Something must be wrong, because we couldn't
 	     find the file to link to.  But can we assume
 	     that the device maj/min numbers are correct
@@ -855,7 +862,7 @@ copyin_file (struct cpio_file_stat *file_hdr, int in_file_des)
 #endif
 
     default:
-      error (0, 0, _("%s: unknown file type"), file_hdr->c_name);
+      error (0, 0, _("%s: unknown file type"), quote (file_hdr->c_name));
       tape_toss_input (in_file_des, file_hdr->c_filesize);
       tape_skip_padding (in_file_des, file_hdr->c_filesize);
     }
@@ -1547,13 +1554,13 @@ process_copy_in (void)
 	    if (crc != file_hdr.c_chksum)
 	      {
 		error (0, 0, _("%s: checksum error (0x%x, should be 0x%x)"),
-		       file_hdr.c_name, crc, file_hdr.c_chksum);
+		       quote (file_hdr.c_name), crc, file_hdr.c_chksum);
 	      }
 	 /* Debian hack: -v and -V now work with --only-verify-crc.
 	    (99/11/10) -BEM */
 	    if (verbose_flag)
 	      {
-		fprintf (stderr, "%s\n", file_hdr.c_name);
+		fprintf (stderr, "%s\n", quotearg (file_hdr.c_name));
 	      }
 	    if (dot_flag)
 	      {
@@ -1578,7 +1585,7 @@ process_copy_in (void)
 	  copyin_file(&file_hdr, in_file_des);
 
 	  if (verbose_flag)
-	    fprintf (stderr, "%s\n", file_hdr.c_name);
+	    fprintf (stderr, "%s\n", quotearg (file_hdr.c_name));
 	  if (dot_flag)
 	    fputc ('.', stderr);
 	}

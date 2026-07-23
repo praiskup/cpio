@@ -1,5 +1,5 @@
 /* main.c - main program and argument processing for cpio.
-   Copyright (C) 1990-2025 Free Software Foundation, Inc.
+   Copyright (C) 1990-2026 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -60,7 +60,9 @@ enum cpio_options {
   RENUMBER_INODES_OPTION,
   IGNORE_DEVNO_OPTION,
   IGNORE_DIRNLINK_OPTION,
-  DEVICE_INDEPENDENT_OPTION
+  DEVICE_INDEPENDENT_OPTION,
+  QUOTING_STYLE_OPTION,
+  QUOTE_CHARS_OPTION
 };
 
 const char *program_authors[] =
@@ -138,6 +140,12 @@ static struct argp_option options[] = {
    N_("Control warning display. Currently FLAG is one of 'none', 'truncate', 'all'. Multiple options accumulate."), GRID+1 },
   {"owner", 'R', N_("[USER][:.][GROUP]"), 0,
    N_("Set the ownership of all files created to the specified USER and/or GROUP"), GRID+1 },
+  {"quoting-style", QUOTING_STYLE_OPTION, N_("STYLE"), 0,
+   N_("set name quoting style; use --quoting-style=help for a list of valid STYLE values"),
+   GRID+1 },
+  {"quote-chars", QUOTE_CHARS_OPTION, N_("STRING"), 0,
+   N_("additionally quote characters from STRING"),
+   GRID+1 },
 #undef GRID
 
 #define GRID 110
@@ -306,6 +314,36 @@ get_block_size (char *arg, size_t min, size_t max)
   return n;
 }
 
+static void
+cpio_list_quoting_styles (int indent)
+{
+  int i;
+
+  for (i = 0; quoting_style_args[i]; i++)
+    printf ("%*.*s%s\n", indent, indent, "", quoting_style_args[i]);
+}
+
+static void
+cpio_set_quoting_style (char *arg)
+{
+  if (strcmp (arg, "help") == 0)
+    {
+      cpio_list_quoting_styles (0);
+      exit (EXIT_SUCCESS);
+    }
+
+  for (idx_t i = 0; quoting_style_args[i]; i++)
+    if (strcmp (arg, quoting_style_args[i]) == 0)
+      {
+	set_quoting_style (NULL, i);
+	return;
+      }
+  USAGE_ERROR ((0, 0,
+		_("Unknown quoting style '%s'."
+		  " Try '%s --quoting-style=help' to get a list."),
+		arg, program_name));
+}
+
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
 {
@@ -462,10 +500,19 @@ crc newc odc bin ustar tar (all-caps also recognized)"), arg));
       copy_function = process_copy_pass;
       break;
 
+    case QUOTE_CHARS_OPTION:
+      for (;*arg; arg++)
+	set_char_quoting (NULL, *arg, 1);
+      break;
+
+    case QUOTING_STYLE_OPTION:
+      cpio_set_quoting_style (arg);
+      break;
+
     case IGNORE_DEVNO_OPTION:
       ignore_devno_option = 1;
       break;
-
+ 
     case RENUMBER_INODES_OPTION:
       renumber_inodes_option = 1;
       break;
@@ -600,6 +647,8 @@ process_args (int argc, char *argv[])
   int index;
 
   xstat = lstat;
+
+  set_quoting_style (NULL, DEFAULT_QUOTING_STYLE);
 
   if (argp_parse (&argp, argc, argv, ARGP_IN_ORDER, &index, NULL))
     exit (PAXEXIT_FAILURE);

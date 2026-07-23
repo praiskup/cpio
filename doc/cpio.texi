@@ -15,7 +15,7 @@
 @copying
 This manual documents GNU cpio (version @value{VERSION}, @value{UPDATED}).
 
-Copyright @copyright{} 1995--2025 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2026 Free Software Foundation, Inc.
 @sp 1
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -813,6 +813,19 @@ Run in copy-pass mode.
 @item --quiet
 [@ref{copy-in},@ref{copy-out},@ref{copy-pass}]
 @*Do not print the number of blocks copied.
+
+@item --quote-chars=@var{string}
+Always quote characters from @var{string}, even if the selected
+quoting style would not quote them (@pxref{quoting styles,,,tar,GNU
+tar}).
+
+@item --quoting-style=@var{style}
+Set quoting style to use when printing member and file names
+(@pxref{quoting styles,,,tar,GNU tar}). Valid @var{style} values are:
+@code{literal}, @code{shell}, @code{shell-always}, @code{c},
+@code{escape}, @code{locale}, and @code{clocale}. Default quoting
+style is @code{literal}, unless overridden while configuring the
+package.
 
 @item -r
 @itemx --rename

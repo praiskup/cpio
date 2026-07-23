@@ -1,5 +1,5 @@
 /* tar.c - read in write tar headers for cpio
-   Copyright (C) 1992-2025 Free Software Foundation, Inc.
+   Copyright (C) 1992-2026 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -36,6 +36,8 @@ stash_tar_linkname (char *linkname)
 
   strncpy (hold_tar_linkname, linkname, TARLINKNAMESIZE);
   hold_tar_linkname[TARLINKNAMESIZE] = '\0';
+  cpio_safer_name_suffix (hold_tar_linkname, true, !no_abs_paths_flag,
+  			  false);
   return hold_tar_linkname;
 }
 

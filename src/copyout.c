@@ -1,5 +1,5 @@
 /* copyout.c - create a cpio archive
-   Copyright (C) 1990-2025 Free Software Foundation, Inc.
+   Copyright (C) 1990-2026 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,7 +45,8 @@ read_for_checksum (int in_file_des, off_t file_size, char *file_name)
     {
       bytes_read = read (in_file_des, buf, BUFSIZ);
       if (bytes_read < 0)
-	error (PAXEXIT_FAILURE, errno, _("cannot read checksum for %s"), file_name);
+	error (PAXEXIT_FAILURE, errno, _("cannot read checksum for %s"),
+	       quote (file_name));
       if (bytes_read == 0)
 	break;
       for (i = 0; i < bytes_read; i++)
@@ -53,7 +54,8 @@ read_for_checksum (int in_file_des, off_t file_size, char *file_name)
       file_size -= bytes_read;
     }
   if (lseek (in_file_des, 0L, SEEK_SET))
-    error (PAXEXIT_FAILURE, errno, _("cannot read checksum for %s"), file_name);
+    error (PAXEXIT_FAILURE, errno, _("cannot read checksum for %s"),
+	   quote (file_name));
 
   return crc;
 }
@@ -287,7 +289,7 @@ field_width_error (const char *filename, const char *fieldname,
   char valbuf[UINTMAX_STRSIZE_BOUND + 1];
   char maxbuf[UINTMAX_STRSIZE_BOUND + 1];
   error (0, 0, _("%s: value %s %s out of allowed range 0..%s"),
-	 filename, fieldname,
+	 quote (filename), fieldname,
 	 STRINGIFY_BIGINT (value, valbuf),
 	 STRINGIFY_BIGINT (MAX_VAL_WITH_DIGITS (width - nul, LG_8),
 			   maxbuf));
@@ -297,7 +299,7 @@ static void
 field_width_warning (const char *filename, const char *fieldname)
 {
   if (warn_option & CPIO_WARN_TRUNCATE)
-    error (0, 0, _("%s: truncating %s"), filename, fieldname);
+	  error (0, 0, _("%s: truncating %s"), quote (filename), fieldname);
 }
 
 void
@@ -465,7 +467,7 @@ write_out_binary_header (dev_t rdev,
   short_hdr.c_dev = makedev (file_hdr->c_dev_maj, file_hdr->c_dev_min);
 
   if ((warn_option & CPIO_WARN_TRUNCATE) && (file_hdr->c_ino >> 16) != 0)
-    error (0, 0, _("%s: truncating inode number"), file_hdr->c_name);
+    error (0, 0, _("%s: truncating inode number"), quote (file_hdr->c_name));
 
   short_hdr.c_ino = file_hdr->c_ino & 0xFFFF;
   if (short_hdr.c_ino != file_hdr->c_ino)
@@ -496,7 +498,7 @@ write_out_binary_header (dev_t rdev,
     {
       char maxbuf[UINTMAX_STRSIZE_BOUND + 1];
       error (0, 0, _("%s: value %s %s out of allowed range 0..%u"),
-	     file_hdr->c_name, _("name size"),
+	     quote (file_hdr->c_name), _("name size"),
 	     STRINGIFY_BIGINT (file_hdr->c_namesize, maxbuf), 0xFFFFu);
       return 1;
     }
@@ -509,7 +511,7 @@ write_out_binary_header (dev_t rdev,
     {
       char maxbuf[UINTMAX_STRSIZE_BOUND + 1];
       error (0, 0, _("%s: value %s %s out of allowed range 0..%lu"),
-	     file_hdr->c_name, _("file size"),
+	     quote (file_hdr->c_name), _("file size"),
 	     STRINGIFY_BIGINT (file_hdr->c_namesize, maxbuf), 0xFFFFFFFFlu);
       return 1;
     }
@@ -557,7 +559,7 @@ write_out_header (struct cpio_file_stat *file_hdr, int out_des)
     case arf_ustar:
       if (is_tar_filename_too_long (file_hdr->c_name))
 	{
-	  error (0, 0, _("%s: file name too long"), file_hdr->c_name);
+	  error (0, 0, _("%s: file name too long"), quote (file_hdr->c_name));
 	  return 1;
 	}
       return write_out_tar_header (file_hdr, out_des);
@@ -748,7 +750,7 @@ process_copy_out (void)
 	      if (archive_format == arf_tar)
 		{
 		  error (0, 0, _("%s not dumped: not a regular file"),
-			 orig_file_name);
+			 quote (orig_file_name));
 		  continue;
 		}
 	      else if (archive_format == arf_ustar)
@@ -799,7 +801,7 @@ process_copy_out (void)
 		    if (link_size + 1 > 100)
 		      {
 			error (0, 0, _("%s: symbolic link too long"),
-			       file_hdr.c_name);
+			       quote (file_hdr.c_name));
 		      }
 		    else
 		      {
@@ -822,11 +824,11 @@ process_copy_out (void)
 #endif
 
 	    default:
-	      error (0, 0, _("%s: unknown file type"), orig_file_name);
+	      error (0, 0, _("%s: unknown file type"), quote (orig_file_name));
 	    }
 
 	  if (verbose_flag)
-	    fprintf (stderr, "%s\n", orig_file_name);
+	    fprintf (stderr, "%s\n", quote (orig_file_name));
 	  if (dot_flag)
 	    fputc ('.', stderr);
 	}
