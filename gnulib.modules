@@ -5,6 +5,8 @@ alloca
 argmatch
 argp
 argp-version-etc
+configmake
+closeout
 dirname
 error
 fdutimensat

@@ -26,7 +26,7 @@ BUILT_SOURCES = rmt-command.h
 CLEANFILES = rmt-command.h rmt-command.h-t
 AM_CPPFLAGS = -I$(top_srcdir)/gnu -I../ -I../gnu 
 
-noinst_HEADERS = system.h system-ioctl.h rmt.h paxlib.h
+noinst_HEADERS = system.h rmt.h paxlib.h
 libpax_a_SOURCES = \
  paxexit.c\
  paxexit-status.c\

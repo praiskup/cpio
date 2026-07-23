@@ -71,6 +71,7 @@
 #include <argp.h>
 #include <argp-version-etc.h>
 #include <progname.h>
+#include <closeout.h>
 
 #ifdef HAVE_LOCALE_H
 # include <locale.h>
@@ -254,6 +255,14 @@ static struct argp argp = {
   NULL,
   NULL
 };
+
+void
+usage (int status)
+{
+  argp_help (&argp, stderr, ARGP_HELP_SEE, (char*) program_name);
+  close_stdout ();
+  exit (status);
+}
 
 void
 check_type (char *dev, int desc)

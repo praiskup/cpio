@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <ctype.h>
 #include "filetypes.h"
 #include "cpiohdr.h"
 #include "dstring.h"

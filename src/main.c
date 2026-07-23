@@ -83,8 +83,6 @@ Examples:\n\
   # Copy files named in name-list to destination-directory\n\
   cpio -p destination-directory < name-list\n");
 
-static void usage (int status);
-
 /*  Print usage error message and exit with error.  */
 
 #define CHECK_USAGE(cond, opt, mode_opt) \
@@ -585,7 +583,7 @@ static struct argp argp = {
   NULL
 };
 
-static void
+void
 usage (int status)
 {
   argp_help (&argp, stderr, ARGP_HELP_SEE, (char*) program_name);
